@@ -61,7 +61,7 @@
       const formspreeId = (config.formspreeId || "").trim();
 
       if (!formspreeId) {
-        // Mailto fallback — works everywhere, no backend
+        // Mailto fallback - works everywhere, no backend
         const subject = encodeURIComponent(`Portfolio contact from ${name}`);
         const body = encodeURIComponent(
           `Name: ${name}\nEmail: ${email}\n\n${message}`
@@ -95,15 +95,15 @@
 
         if (res.ok) {
           form.reset();
-          setStatus("success", "TRANSMISSION COMPLETE — MESSAGE RECEIVED");
+          setStatus("success", "TRANSMISSION COMPLETE - MESSAGE RECEIVED");
         } else {
           const data = await res.json().catch(() => ({}));
           const err =
-            data.errors?.[0]?.message || "TRANSMISSION FAILED — TRY AGAIN";
+            data.errors?.[0]?.message || "TRANSMISSION FAILED - TRY AGAIN";
           setStatus("error", err.toUpperCase());
         }
       } catch {
-        setStatus("error", "NETWORK ERROR — USE EMAIL LINK INSTEAD");
+        setStatus("error", "NETWORK ERROR - USE EMAIL LINK INSTEAD");
       } finally {
         if (submitBtn) submitBtn.disabled = false;
       }
@@ -188,7 +188,7 @@ float snoise(vec2 v){
   const vec4 C = vec4(0.211324865405187, 0.366025403784439,
            -0.577350269189626, 0.024390243902439);
   vec2 i  = floor(v + dot(v, C.yy) );
-  vec2 x0 = v -   i + dot(i, C.xx);
+  vec2 x0 = v -  i + dot(i, C.xx);
   vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
   vec4 x12 = x0.xyxy + C.xxzz;
   x12.xy -= i1;
