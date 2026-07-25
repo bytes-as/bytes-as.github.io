@@ -1,0 +1,10 @@
+{
+  "name": "arch-dev-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Architectural minimalist portfolio — static site for Vercel or GitHub Pages",
+  "scripts": {
+    "dev": "npx --yes serve -l 3000",
+    "start": "npx --yes serve -l 3000"
+  }
+}

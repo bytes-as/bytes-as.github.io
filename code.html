@@ -1,0 +1,811 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>SYSTEM_ARCHITECT // DEV</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.02;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        
+        #shader-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .glass-panel {
+            background-color: rgba(10, 10, 11, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            animation: scan 3s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Motion & Micro-interactions */
+        @media (prefers-reduced-motion: no-preference) {
+            .reveal {
+                opacity: 0;
+                transform: translateY(30px);
+                transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            .reveal.active {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            
+            .stagger-1 { transition-delay: 0.1s; }
+            .stagger-2 { transition-delay: 0.2s; }
+            .stagger-3 { transition-delay: 0.3s; }
+            .stagger-4 { transition-delay: 0.4s; }
+
+            .magnetic-wrap {
+                position: relative;
+                display: inline-block;
+            }
+
+            .project-img-container {
+                transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            .project-img-container:hover {
+                transform: scale(1.02);
+                box-shadow: 0 0 30px rgba(3, 86, 255, 0.15);
+            }
+
+            .glitch-text {
+                position: relative;
+                display: inline-block;
+            }
+            .glitch-text:hover::before, .glitch-text:hover::after {
+                content: attr(data-text);
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: var(--background);
+            }
+            .glitch-text:hover::before {
+                left: 2px;
+                text-shadow: -1px 0 red;
+                clip: rect(24px, 550px, 90px, 0);
+                animation: glitch-anim-2 3s infinite linear alternate-reverse;
+            }
+            .glitch-text:hover::after {
+                left: -2px;
+                text-shadow: -1px 0 blue;
+                clip: rect(85px, 550px, 140px, 0);
+                animation: glitch-anim 2.5s infinite linear alternate-reverse;
+            }
+
+            @keyframes glitch-anim {
+                0% { clip: rect(74px, 9999px, 86px, 0); }
+                5% { clip: rect(69px, 9999px, 66px, 0); }
+                10% { clip: rect(10px, 9999px, 58px, 0); }
+                15% { clip: rect(32px, 9999px, 20px, 0); }
+                20% { clip: rect(93px, 9999px, 34px, 0); }
+                25% { clip: rect(39px, 9999px, 73px, 0); }
+                30% { clip: rect(66px, 9999px, 55px, 0); }
+                35% { clip: rect(27px, 9999px, 69px, 0); }
+                40% { clip: rect(38px, 9999px, 25px, 0); }
+                45% { clip: rect(18px, 9999px, 98px, 0); }
+                50% { clip: rect(84px, 9999px, 56px, 0); }
+                55% { clip: rect(81px, 9999px, 4px, 0); }
+                60% { clip: rect(44px, 9999px, 46px, 0); }
+                65% { clip: rect(40px, 9999px, 26px, 0); }
+                70% { clip: rect(70px, 9999px, 62px, 0); }
+                75% { clip: rect(8px, 9999px, 12px, 0); }
+                80% { clip: rect(78px, 9999px, 99px, 0); }
+                85% { clip: rect(66px, 9999px, 43px, 0); }
+                90% { clip: rect(81px, 9999px, 80px, 0); }
+                95% { clip: rect(74px, 9999px, 35px, 0); }
+                100% { clip: rect(74px, 9999px, 14px, 0); }
+            }
+            @keyframes glitch-anim-2 {
+                0% { clip: rect(32px, 9999px, 24px, 0); }
+                5% { clip: rect(9px, 9999px, 71px, 0); }
+                10% { clip: rect(73px, 9999px, 86px, 0); }
+                15% { clip: rect(10px, 9999px, 26px, 0); }
+                20% { clip: rect(23px, 9999px, 42px, 0); }
+                25% { clip: rect(81px, 9999px, 1px, 0); }
+                30% { clip: rect(19px, 9999px, 14px, 0); }
+                35% { clip: rect(52px, 9999px, 97px, 0); }
+                40% { clip: rect(69px, 9999px, 17px, 0); }
+                45% { clip: rect(58px, 9999px, 60px, 0); }
+                50% { clip: rect(78px, 9999px, 39px, 0); }
+                55% { clip: rect(67px, 9999px, 94px, 0); }
+                60% { clip: rect(41px, 9999px, 38px, 0); }
+                65% { clip: rect(79px, 9999px, 73px, 0); }
+                70% { clip: rect(54px, 9999px, 49px, 0); }
+                75% { clip: rect(20px, 9999px, 93px, 0); }
+                80% { clip: rect(98px, 9999px, 46px, 0); }
+                85% { clip: rect(24px, 9999px, 69px, 0); }
+                90% { clip: rect(29px, 9999px, 68px, 0); }
+                95% { clip: rect(62px, 9999px, 89px, 0); }
+                100% { clip: rect(76px, 9999px, 22px, 0); }
+            }
+        }
+
+        .floating-code {
+            position: absolute;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            white-space: pre;
+            z-index: 0;
+            will-change: transform;
+        }
+
+        /* Topology Diagram Styles */
+        .topology-node {
+            border: 0.5px solid var(--outline-variant);
+            padding: 1rem;
+            position: relative;
+            background: rgba(10, 10, 11, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2;
+        }
+        
+        .topology-line-h {
+            height: 0.5px;
+            background-color: var(--outline-variant);
+            position: absolute;
+            top: 50%;
+            z-index: 1;
+        }
+        
+        .topology-line-v {
+            width: 0.5px;
+            background-color: var(--outline-variant);
+            position: absolute;
+            left: 50%;
+            z-index: 1;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#1a1c1c",
+                        "secondary-fixed": "#dce1ff",
+                        "error": "#ba1a1a",
+                        "on-surface": "#e2e2e4",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "on-secondary-fixed": "#001551",
+                        "surface-container-lowest": "#050505",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#111112",
+                        "secondary-container": "#0356ff",
+                        "on-tertiary-container": "#838484",
+                        "outline-variant": "#333536",
+                        "inverse-on-surface": "#1c1b1b",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#222325",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-error": "#ffffff",
+                        "on-primary": "#000000",
+                        "on-primary-fixed-variant": "#474746",
+                        "surface-variant": "#1c1d1e",
+                        "background": "#0a0a0b",
+                        "surface-tint": "#5f5e5e",
+                        "on-primary-container": "#858383",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "surface-dim": "#0a0a0b",
+                        "surface": "#0a0a0b",
+                        "inverse-primary": "#474746",
+                        "primary-container": "#ffffff",
+                        "on-primary-fixed": "#1c1b1b",
+                        "primary": "#ffffff",
+                        "on-secondary-container": "#e4e7ff",
+                        "outline": "#444748",
+                        "surface-container-high": "#1a1b1c",
+                        "on-surface-variant": "#c4c7c7",
+                        "primary-fixed": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#0039b3",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#a3b5ff",
+                        "inverse-surface": "#e2e2e4",
+                        "tertiary": "#ffffff",
+                        "surface-container-low": "#0d0e0f",
+                        "surface-container-highest": "#222325",
+                        "secondary-fixed-dim": "#b6c4ff",
+                        "on-background": "#e2e2e4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "architectural-line": "0.5px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "margin-mobile": "24px",
+                        "margin-desktop": "64px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono", "monospace"],
+                        "display-lg": ["Playfair Display", "serif"],
+                        "headline-md": ["Playfair Display", "serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "headline-lg-mobile": ["Playfair Display", "serif"],
+                        "label-md": ["JetBrains Mono", "monospace"],
+                        "headline-lg": ["Playfair Display", "serif"],
+                        "code-block": ["JetBrains Mono", "monospace"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "1.4", "letterSpacing": "0.1em", "fontWeight": "400" }],
+                        "display-lg": ["72px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["32px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-lg": ["48px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "code-block": ["14px", { "lineHeight": "1.7", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md text-body-md antialiased selection:bg-secondary selection:text-on-secondary relative overflow-x-hidden">
+<canvas id="shader-bg" width="1280" height="1024"></canvas>
+<div class="noise-overlay"></div>
+<!-- Floating Code Layer -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" id="code-layer">
+<!-- Code snippets generated by JS -->
+<div class="floating-code" data-speed-y="-0.059" data-speed-x="0.010" style="top: 37.5367%; left: 80.4672%; transform: translate(19.8025px, 19.6916px);">unsafe { optimize() }</div><div class="floating-code" data-speed-y="0.063" data-speed-x="-0.029" style="top: 56.3104%; left: 75.8176%; transform: translate(13.0589px, 13.5834px);">impl Architectural for Logic</div><div class="floating-code" data-speed-y="-0.071" data-speed-x="-0.013" style="top: 97.0274%; left: 80.3151%; transform: translate(-5.69098px, -5.01334px);">useEffect(() =&gt; { observe() })</div><div class="floating-code" data-speed-y="0.026" data-speed-x="-0.028" style="top: 99.9461%; left: 28.4445%; transform: translate(-19.2086px, -19.0008px);">unsafe { optimize() }</div><div class="floating-code" data-speed-y="0.054" data-speed-x="0.023" style="top: 89.1588%; left: 18.8265%; transform: translate(-15.0659px, -15.519px);">struct Nexus { pub id: String }</div><div class="floating-code" data-speed-y="0.079" data-speed-x="0.011" style="top: 68.951%; left: 38.4379%; transform: translate(2.9283px, 2.23087px);">useEffect(() =&gt; { observe() })</div><div class="floating-code" data-speed-y="-0.056" data-speed-x="0.000" style="top: 45.1645%; left: 64.9829%; transform: translate(18.2302px, 17.9297px);">use std::sync::Arc</div><div class="floating-code" data-speed-y="0.029" data-speed-x="0.023" style="top: 0.438785%; left: 59.1351%; transform: translate(16.7714px, 17.1441px);">useEffect(() =&gt; { observe() })</div><div class="floating-code" data-speed-y="-0.098" data-speed-x="-0.037" style="top: 90.4115%; left: 94.7106%; transform: translate(-0.107012px, 0.596238px);">trait Computable</div><div class="floating-code" data-speed-y="-0.063" data-speed-x="0.026" style="top: 36.3656%; left: 49.3101%; transform: translate(-16.887px, -16.4998px);">0x7F2A9B</div><div class="floating-code" data-speed-y="0.007" data-speed-x="-0.014" style="top: 51.5122%; left: 11.2564%; transform: translate(-18.1412px, -18.426px);">unsafe { optimize() }</div><div class="floating-code" data-speed-y="-0.010" data-speed-x="-0.033" style="top: 3.07509%; left: 24.7467%; transform: translate(-2.71642px, -3.41142px);">match event {</div><div class="floating-code" data-speed-y="0.039" data-speed-x="0.050" style="top: 5.71613%; left: 66.3346%; transform: translate(15.2058px, 14.7396px);">impl Architectural for Logic</div><div class="floating-code" data-speed-y="0.028" data-speed-x="0.041" style="top: 29.8714%; left: 42.8672%; transform: translate(19.1479px, 19.3391px);">const State = useRef()</div><div class="floating-code" data-speed-y="-0.029" data-speed-x="0.046" style="top: 87.6%; left: 18.8735%; transform: translate(5.48548px, 6.15832px);">0x7F2A9B</div><div class="floating-code" data-speed-y="0.067" data-speed-x="-0.049" style="top: 25.1504%; left: 13.5205%; transform: translate(-13.2202px, -12.6844px);">useEffect(() =&gt; { observe() })</div><div class="floating-code" data-speed-y="0.003" data-speed-x="-0.044" style="top: 20.4828%; left: 96.9423%; transform: translate(-19.7713px, -19.8651px);">const State = useRef()</div><div class="floating-code" data-speed-y="-0.061" data-speed-x="-0.008" style="top: 78.9589%; left: 51.6522%; transform: translate(-8.14475px, -8.78196px);">struct Nexus { pub id: String }</div><div class="floating-code" data-speed-y="-0.089" data-speed-x="-0.007" style="top: 31.0699%; left: 65.5976%; transform: translate(10.9701px, 10.3753px);">unsafe { optimize() }</div><div class="floating-code" data-speed-y="0.072" data-speed-x="0.032" style="top: 56.1338%; left: 37.1665%; transform: translate(19.999px, 19.9936px);">use std::sync::Arc</div><div class="floating-code" data-speed-y="-0.068" data-speed-x="0.049" style="top: 8.16035%; left: 28.8988%; transform: translate(10.641px, 11.2298px);">impl Architectural for Logic</div><div class="floating-code" data-speed-y="0.004" data-speed-x="0.030" style="top: 78.8913%; left: 24.3033%; transform: translate(-8.50033px, -7.85855px);">const State = useRef()</div><div class="floating-code" data-speed-y="0.049" data-speed-x="-0.017" style="top: 59.5622%; left: 54.619%; transform: translate(-19.8265px, -19.7218px);">useEffect(() =&gt; { observe() })</div><div class="floating-code" data-speed-y="-0.055" data-speed-x="-0.015" style="top: 12.8397%; left: 46.9469%; transform: translate(-12.9243px, -13.4529px);">useEffect(() =&gt; { observe() })</div><div class="floating-code" data-speed-y="0.046" data-speed-x="0.022" style="top: 29.6005%; left: 98.7909%; transform: translate(5.86046px, 5.18451px);">0x7F2A9B</div><div class="floating-code" data-speed-y="0.001" data-speed-x="-0.019" style="top: 81.8811%; left: 43.0984%; transform: translate(19.2571px, 19.0553px);">match event {</div><div class="floating-code" data-speed-y="0.081" data-speed-x="0.004" style="top: 84.3004%; left: 48.7281%; transform: translate(14.9489px, 15.4068px);">use std::sync::Arc</div><div class="floating-code" data-speed-y="-0.099" data-speed-x="-0.015" style="top: 76.1614%; left: 30.3801%; transform: translate(-3.1033px, -2.40671px);">impl Architectural for Logic</div><div class="floating-code" data-speed-y="-0.093" data-speed-x="-0.046" style="top: 27.1337%; left: 25.0921%; transform: translate(-18.3023px, -18.0075px);">fn compile_to_wasm()</div><div class="floating-code" data-speed-y="-0.069" data-speed-x="-0.013" style="top: 61.6296%; left: 24.9871%; transform: translate(-16.6743px, -17.0523px);">fn compile_to_wasm()</div></div>
+<!-- TopNavBar -->
+<header class="w-full top-0 sticky glass-panel border-b-[0.5px] border-outline-variant z-40">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 mx-auto max-w-container-max relative">
+<div class="scan-line"></div>
+<div class="font-headline-md text-headline-md font-bold tracking-tighter text-primary reveal stagger-1 active">ARCH/DEV</div>
+<nav class="hidden md:flex space-x-8 items-center reveal stagger-2 active">
+<div class="magnetic-wrap"><a class="magnetic-link font-label-md text-label-md text-secondary font-bold relative after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-secondary after:rounded-full inline-block transition-transform duration-300" href="#">PROJECTS</a></div>
+<div class="magnetic-wrap"><a class="magnetic-link font-label-md text-label-md text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all duration-300 px-2 py-1 inline-block" href="#">EXPERTISE</a></div>
+<div class="magnetic-wrap"><a class="magnetic-link font-label-md text-label-md text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all duration-300 px-2 py-1 inline-block" href="#">PROCESS</a></div>
+<div class="magnetic-wrap"><a class="magnetic-link font-label-md text-label-md text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all duration-300 px-2 py-1 inline-block" href="#">TERMINAL</a></div>
+</nav>
+</div>
+</header>
+<main class="flex-grow max-w-container-max w-full mx-auto relative z-10">
+<!-- Hero Section -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter px-margin-mobile md:px-margin-desktop pt-24 md:pt-48 pb-32 border-b-[0.5px] border-outline-variant glass-panel mt-12 relative reveal stagger-3 active min-h-[80vh] items-center" data-parallax="0.2">
+<div class="absolute top-0 left-0 w-8 h-8 border-t-[1px] border-l-[1px] border-primary/50 m-4"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-[1px] border-r-[1px] border-primary/50 m-4"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-[1px] border-l-[1px] border-primary/50 m-4"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-[1px] border-r-[1px] border-primary/50 m-4"></div>
+<div class="col-span-1 md:col-span-8 flex flex-col justify-center relative z-20">
+<h1 class="font-display-lg text-display-lg text-primary uppercase mb-4">SYSTEM_ARCHITECT /<br>SENIOR_STAFF</h1>
+<h2 class="font-headline-md text-headline-md text-on-surface-variant italic">Architecting resilient distributed systems from metal to interface.</h2>
+</div>
+<div class="col-span-1 md:col-span-4 absolute right-0 top-1/2 -translate-y-1/2 w-full md:w-1/2 h-full z-10 pointer-events-none opacity-30 md:opacity-80" data-parallax="0.5">
+<img alt="High-end abstract architectural visualization" class="w-full h-full object-cover mix-blend-screen" src="https://lh3.googleusercontent.com/aida/AP1WRLu_Se6pCZSd5HGKTPMUNIPBH7bu1yXzmgAW58yZa3duRQDAETshgoP2B585oYDwfOI5mISH54V_BDYbQ10U3L-XJ0wu8FbhdTMsyxOyaO7wRaOSr0I1A_cw8fPY19w8IqljUYpUm_Getwkxz6OYroo_KIPfcczcljaajxg5E3TPT3iWTkA2JRKUGip96l81rWHKU8yEC8iFECIs0k9pkGjl9BW30ksgwQwsQSpp4sUnuf7DK6D_Unn29jg">
+</div>
+</section>
+<!-- Profile Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-32 border-b-[0.5px] border-outline-variant relative reveal scroll-reveal active" data-parallax="0.1">
+<div class="flex justify-between items-end mb-12 border-b-[0.5px] border-outline-variant pb-4">
+<h3 class="font-label-md text-label-md text-primary uppercase tracking-widest glitch-text" data-text="PROFILE_DATA">PROFILE_DATA</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">BIOMETRICS / IDENT</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+<div class="col-span-1 md:col-span-4 relative group"><div class="border-[0.5px] border-outline-variant p-4 glass-panel relative z-10 aspect-[2/3] overflow-hidden"><img alt="Professional Portrait" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700 ease-in-out border-[0.5px] border-outline-variant mix-blend-screen opacity-80 hover:opacity-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIxNEv3I-_k7NbQYAvBBRXUa0NrxBL5F2IAwj2rLz2OTvUqBJjbPEJRcUmIg2HpyYByjjC5g2XNSzmFh8n3s1ckLqQayShO7aao3czQNwyIL3_labTZBDjm_F6DBlF88W2ABbrqxmJSH6g1jylxmuus9jQhEGceFA4aVBYX56mAwM9DkLSWbVCwovdmUkACJWL8zc6khMpkyGEzOlP7_TpZJu0wKvLuE2iDuVz1py2tE4It7LBQ8eePSxvwjJ8K08S0jN9nzX1FSE"></div><div class="absolute top-0 left-0 w-8 h-8 border-t-[1px] border-l-[1px] border-primary -translate-x-2 -translate-y-2 transition-transform duration-500 group-hover:translate-x-0 group-hover:translate-y-0"></div><div class="absolute bottom-0 right-0 w-8 h-8 border-b-[1px] border-r-[1px] border-primary translate-x-2 translate-y-2 transition-transform duration-500 group-hover:translate-x-0 group-hover:translate-y-0"></div></div>
+<div class="col-span-1 md:col-span-8 md:pl-16 relative z-20 mt-12 md:mt-0">
+<h4 class="font-headline-lg text-headline-lg text-primary mb-6 leading-tight">Architecting the impossible,<br><span class="text-on-surface-variant italic font-normal">one instruction at a time.</span></h4>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-6 max-w-2xl tracking-wide">Senior Staff Engineer with over a decade of experience designing and scaling distributed systems. I specialize in the intersection of high-performance backend infrastructure and complex, data-driven interfaces. My approach is rooted in structural integrity, elegant algorithms, and unyielding reliability.</p>
+<div class="flex items-center gap-4 mt-8 pt-8 border-t-[0.5px] border-outline-variant max-w-md">
+<div class="w-2 h-2 bg-secondary rounded-full animate-pulse"></div>
+<span class="font-code-block text-code-block text-primary">STATUS: OPEN FOR STRATEGIC ALLIANCES</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Architectural Principles Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-32 border-b-[0.5px] border-outline-variant relative reveal scroll-reveal active" data-parallax="0.1">
+<div class="flex justify-between items-end mb-12 border-b-[0.5px] border-outline-variant pb-4">
+<h3 class="font-label-md text-label-md text-primary uppercase tracking-widest glitch-text" data-text="ARCHITECTURAL_PRINCIPLES">ARCHITECTURAL_PRINCIPLES</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">CORE / VALUES</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="border-[0.5px] border-outline-variant p-8 relative group hover:bg-white/5 transition-colors">
+<div class="absolute top-0 left-0 w-2 h-2 border-t-[1px] border-l-[1px] border-primary"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b-[1px] border-r-[1px] border-primary"></div>
+<div class="font-code-block text-code-block text-primary mb-4">01 // RELIABILITY</div>
+<ul class="space-y-2 font-code-block text-code-block text-on-surface-variant">
+<li class="">&gt; Observability as default</li>
+<li class="">&gt; Zero-downtime deployments</li>
+<li class="">&gt; Chaos engineering</li>
+</ul>
+</div>
+<div class="border-[0.5px] border-outline-variant p-8 relative group hover:bg-white/5 transition-colors">
+<div class="absolute top-0 left-0 w-2 h-2 border-t-[1px] border-l-[1px] border-primary"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b-[1px] border-r-[1px] border-primary"></div>
+<div class="font-code-block text-code-block text-primary mb-4">02 // SCALABILITY</div>
+<ul class="space-y-2 font-code-block text-code-block text-on-surface-variant">
+<li class="">&gt; Horizontal auto-scaling</li>
+<li class="">&gt; Intelligent data partitioning</li>
+<li class="">&gt; Event-driven architectures</li>
+</ul>
+</div>
+<div class="border-[0.5px] border-outline-variant p-8 relative group hover:bg-white/5 transition-colors">
+<div class="absolute top-0 left-0 w-2 h-2 border-t-[1px] border-l-[1px] border-primary"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b-[1px] border-r-[1px] border-primary"></div>
+<div class="font-code-block text-code-block text-primary mb-4">03 // VELOCITY</div>
+<ul class="space-y-2 font-code-block text-code-block text-on-surface-variant">
+<li class="">&gt; Modular, decoupled design</li>
+<li class="">&gt; CI/CD as code infrastructure</li>
+<li class="">&gt; Developer experience (DX) first</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- System Topology Grid -->
+<section class="px-margin-mobile md:px-margin-desktop py-32 border-b-[0.5px] border-outline-variant relative reveal scroll-reveal active" data-parallax="0.15">
+<div class="flex justify-between items-end mb-12 border-b-[0.5px] border-outline-variant pb-4">
+<h3 class="font-label-md text-label-md text-primary uppercase tracking-widest glitch-text" data-text="SYSTEM_TOPOLOGY">SYSTEM_TOPOLOGY</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">INFRA / DIAGRAM</span>
+</div>
+<div class="relative py-12 px-4 flex flex-col items-center justify-center space-y-12">
+<!-- Level 1: Edge -->
+<div class="flex justify-center w-full relative"><div class="absolute w-3 h-3 bg-secondary rounded-full -left-[6.5px] top-1 group-hover:scale-150 transition-transform shadow-[0_0_15px_rgba(3,86,255,0.5)]"></div><span class="font-label-sm text-label-sm text-secondary block mb-2 tracking-widest">2020 - PRESENT</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvKSgB8WhXFz__sga-qaSa3AzRZ2K6B8LTwEXyQn0DRBtsJE7oDGFTq-oLQP6r8gMC4Jp2o69E_EQ28nUf65JvFA-qMpJqyCnc0lSKpLGPrEU_bnSezdpdpQkq6saEroW8fvkua5LlJvCxMYgkaIEsfADzAoONFy19ICdzALPddjlyNLs66l2kZHxtKEhqQAZXfCLJHozn2Rs2E1cCApYCix9q5Dc77jo3WQ2JJ6U7wxSnVecIi7EcTPfQ" alt="Nexus Global Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Senior Staff Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">NEXUS GLOBAL LOGIC</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Led migration of legacy Java monolith to 150+ Go microservices. Implemented zero-trust networking via Istio/Envoy. Mentored 40+ engineers across 5 global squads while maintaining 99.999% uptime for core event mesh processing 2B+ events/day.</p></div>
+<!-- Level 2: Load Balancer -->
+<div class="flex justify-center w-full relative"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2016 - 2020</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsK5bbJOLho2U15vO00axnX9HcuZSeIqprWuv-QUllqgQ9LNxSNFh33sPGJNrFfeYUVI2xK_gylZV47U7jo7BWL-yMDexkcs-uMW33tCW_67rSE-GB5RGugzbsCf6lj_p02zKZSnjxHK8SyuecX6y4Im-Z4A04MGS0kQYjtYWO_l98QLyWl9J6z6OR7x7qititQzN-TerQbJP9fR4kBpSvn7mwqMMpKWVm7jhONCU4cv11OvObw_rNwOrM" alt="Aether Dynamics Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Principal Systems Architect</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">AETHER DYNAMICS</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Designed low-latency trading engine handling $2B+ daily volume. Optimized Linux kernel networking stack for sub-microsecond packet processing. Implemented custom consensus protocols and optimized network stack performance across global datacenters.</p></div>
+<!-- Level 3: Microservices -->
+<div class="flex justify-center w-full relative px-12"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2014 - 2016</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLt8iz-nEHq1DkXNAC1Hvr3iTf2cM0trTxUZTFT-PbftcQJYjFfhCgiLtQPq94FrOZUr__nZd--lzYpu5JP0coCfujZ47IPwKwfYYqinBDEtNxg3bHObWVDSTS9njRj9Ypt6_qibp_1URNOFMjD64V0ry1gg6ZwyXnE3bClnxvvO2adYChDdNyQ0-alXO9QD5ZFV_lgsbT6Q_XdoTz9yU-6m4obR4uljXKKNna-eltRxaIpsUpCrPg_rcPs" alt="Vertex Cloud Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Lead Infrastructure Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">VERTEX CLOUD</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Architected multi-region Kubernetes clusters with automated disaster recovery and zero-downtime deployment pipelines for critical fintech infrastructure.</p></div>
+<!-- Level 4: Event Mesh & Storage -->
+<div class="flex flex-col items-center w-full relative pt-12"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2012 - 2014</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtM2_EqnLoirO1joOTWwGEIQZfCAcD0Jg00LWZwMk5ADK2WkmsJSD1j3KxWY1HwocYUiW1OR816310fmbvF2rO2STbZzdFoNkhFzI4MZoTRimHiMfW_GMJKOQtoW0TYEO84jZN8gtJLwIODCNwhtUwyr5pOpTvC0kWe-oFFSihiZmlQATwBXVyaISanOo6ZfuK36jE8SV5ZWNdsje8OG7ynmD_VxSqb1-drQMhlx4egXD2tbwPcEprrz-4" alt="Kernel Logic Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Systems Software Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">KERNEL LOGIC</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Developed high-performance C++ networking primitives and optimized memory allocation strategies for HFT platforms requiring sub-microsecond execution.</p></div>
+</div>
+</section>
+<!-- Experience & Education Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-32 border-b-[0.5px] border-outline-variant relative reveal scroll-reveal active" data-parallax="0.1">
+<div class="flex justify-between items-end mb-16 border-b-[0.5px] border-outline-variant pb-4">
+<h3 class="font-label-md text-label-md text-primary uppercase tracking-widest glitch-text" data-text="CAREER_TIMELINE">CAREER_TIMELINE</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">EXPERIENCE / EDUCATION</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-16">
+<!-- Experience -->
+<div>
+<h4 class="font-code-block text-code-block text-primary mb-12 border-b-[0.5px] border-outline-variant pb-4 flex items-center justify-between">
+<span class="">01 // PROFESSIONAL_HISTORY</span>
+<span class="text-on-surface-variant">RUNTIME</span>
+</h4>
+<div class="space-y-12">
+<div class="relative pl-10 border-l-[0.5px] border-outline-variant group"><div class="absolute w-3 h-3 bg-secondary rounded-full -left-[6.5px] top-1 group-hover:scale-150 transition-transform shadow-[0_0_15px_rgba(3,86,255,0.5)]"></div><span class="font-label-sm text-label-sm text-secondary block mb-2 tracking-widest">2020 - PRESENT</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvKSgB8WhXFz__sga-qaSa3AzRZ2K6B8LTwEXyQn0DRBtsJE7oDGFTq-oLQP6r8gMC4Jp2o69E_EQ28nUf65JvFA-qMpJqyCnc0lSKpLGPrEU_bnSezdpdpQkq6saEroW8fvkua5LlJvCxMYgkaIEsfADzAoONFy19ICdzALPddjlyNLs66l2kZHxtKEhqQAZXfCLJHozn2Rs2E1cCApYCix9q5Dc77jo3WQ2JJ6U7wxSnVecIi7EcTPfQ" alt="Nexus Global Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Senior Staff Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">NEXUS GLOBAL LOGIC</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Led migration of legacy Java monolith to 150+ Go microservices. Implemented zero-trust networking via Istio/Envoy. Mentored 40+ engineers across 5 global squads while maintaining 99.999% uptime for core event mesh processing 2B+ events/day.</p></div>
+<div class="relative pl-10 border-l-[0.5px] border-outline-variant group"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2016 - 2020</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsK5bbJOLho2U15vO00axnX9HcuZSeIqprWuv-QUllqgQ9LNxSNFh33sPGJNrFfeYUVI2xK_gylZV47U7jo7BWL-yMDexkcs-uMW33tCW_67rSE-GB5RGugzbsCf6lj_p02zKZSnjxHK8SyuecX6y4Im-Z4A04MGS0kQYjtYWO_l98QLyWl9J6z6OR7x7qititQzN-TerQbJP9fR4kBpSvn7mwqMMpKWVm7jhONCU4cv11OvObw_rNwOrM" alt="Aether Dynamics Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Principal Systems Architect</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">AETHER DYNAMICS</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Designed low-latency trading engine handling $2B+ daily volume. Optimized Linux kernel networking stack for sub-microsecond packet processing. Implemented custom consensus protocols and optimized network stack performance across global datacenters.</p></div>
+<div class="relative pl-10 border-l-[0.5px] border-outline-variant group"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2014 - 2016</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLt8iz-nEHq1DkXNAC1Hvr3iTf2cM0trTxUZTFT-PbftcQJYjFfhCgiLtQPq94FrOZUr__nZd--lzYpu5JP0coCfujZ47IPwKwfYYqinBDEtNxg3bHObWVDSTS9njRj9Ypt6_qibp_1URNOFMjD64V0ry1gg6ZwyXnE3bClnxvvO2adYChDdNyQ0-alXO9QD5ZFV_lgsbT6Q_XdoTz9yU-6m4obR4uljXKKNna-eltRxaIpsUpCrPg_rcPs" alt="Vertex Cloud Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Lead Infrastructure Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">VERTEX CLOUD</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Architected multi-region Kubernetes clusters with automated disaster recovery and zero-downtime deployment pipelines for critical fintech infrastructure.</p></div>
+<div class="relative pl-10 border-l-[0.5px] border-outline-variant group"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2012 - 2014</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtM2_EqnLoirO1joOTWwGEIQZfCAcD0Jg00LWZwMk5ADK2WkmsJSD1j3KxWY1HwocYUiW1OR816310fmbvF2rO2STbZzdFoNkhFzI4MZoTRimHiMfW_GMJKOQtoW0TYEO84jZN8gtJLwIODCNwhtUwyr5pOpTvC0kWe-oFFSihiZmlQATwBXVyaISanOo6ZfuK36jE8SV5ZWNdsje8OG7ynmD_VxSqb1-drQMhlx4egXD2tbwPcEprrz-4" alt="Kernel Logic Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Systems Software Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">KERNEL LOGIC</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Developed high-performance C++ networking primitives and optimized memory allocation strategies for HFT platforms requiring sub-microsecond execution.</p></div></div>
+</div>
+<!-- Education -->
+<div>
+<h4 class="font-code-block text-code-block text-primary mb-12 border-b-[0.5px] border-outline-variant pb-4 flex items-center justify-between">
+<span class="">02 // ACADEMIC_RECORD</span>
+<span class="text-on-surface-variant">FOUNDATION</span>
+</h4>
+<div class="space-y-12"><div class="relative pl-10 border-l-[0.5px] border-outline-variant group"><div class="absolute w-3 h-3 bg-secondary rounded-full -left-[6.5px] top-1 group-hover:scale-150 transition-transform shadow-[0_0_15px_rgba(3,86,255,0.5)]"></div><span class="font-label-sm text-label-sm text-secondary block mb-2 tracking-widest">2020 - PRESENT</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvKSgB8WhXFz__sga-qaSa3AzRZ2K6B8LTwEXyQn0DRBtsJE7oDGFTq-oLQP6r8gMC4Jp2o69E_EQ28nUf65JvFA-qMpJqyCnc0lSKpLGPrEU_bnSezdpdpQkq6saEroW8fvkua5LlJvCxMYgkaIEsfADzAoONFy19ICdzALPddjlyNLs66l2kZHxtKEhqQAZXfCLJHozn2Rs2E1cCApYCix9q5Dc77jo3WQ2JJ6U7wxSnVecIi7EcTPfQ" alt="Nexus Global Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Senior Staff Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">NEXUS GLOBAL LOGIC</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Led migration of legacy Java monolith to 150+ Go microservices. Implemented zero-trust networking via Istio/Envoy. Mentored 40+ engineers across 5 global squads while maintaining 99.999% uptime for core event mesh processing 2B+ events/day.</p></div>
+<div class="relative pl-10 border-l-[0.5px] border-outline-variant group"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2016 - 2020</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsK5bbJOLho2U15vO00axnX9HcuZSeIqprWuv-QUllqgQ9LNxSNFh33sPGJNrFfeYUVI2xK_gylZV47U7jo7BWL-yMDexkcs-uMW33tCW_67rSE-GB5RGugzbsCf6lj_p02zKZSnjxHK8SyuecX6y4Im-Z4A04MGS0kQYjtYWO_l98QLyWl9J6z6OR7x7qititQzN-TerQbJP9fR4kBpSvn7mwqMMpKWVm7jhONCU4cv11OvObw_rNwOrM" alt="Aether Dynamics Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Principal Systems Architect</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">AETHER DYNAMICS</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Designed low-latency trading engine handling $2B+ daily volume. Optimized Linux kernel networking stack for sub-microsecond packet processing. Implemented custom consensus protocols and optimized network stack performance across global datacenters.</p></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Work Preview -->
+<section class="px-margin-mobile md:px-margin-desktop py-32 border-b-[0.5px] border-outline-variant glass-panel mt-12 relative reveal scroll-reveal active" data-parallax="0.2">
+<div class="flex justify-between items-end mb-12 border-b-[0.5px] border-outline-variant pb-4">
+<h3 class="font-label-md text-label-md text-primary uppercase tracking-widest glitch-text" data-text="SELECTED_WORKS">SELECTED_WORKS</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">DEPLOYMENTS</span>
+</div>
+<div class="space-y-12">
+<!-- Project 01 -->
+<div class="relative border-[0.5px] border-outline-variant p-10 md:p-16 group cursor-pointer hover:bg-white/5 transition-colors duration-500"><div class="absolute w-3 h-3 bg-secondary rounded-full -left-[6.5px] top-1 group-hover:scale-150 transition-transform shadow-[0_0_15px_rgba(3,86,255,0.5)]"></div><span class="font-label-sm text-label-sm text-secondary block mb-2 tracking-widest">2020 - PRESENT</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvKSgB8WhXFz__sga-qaSa3AzRZ2K6B8LTwEXyQn0DRBtsJE7oDGFTq-oLQP6r8gMC4Jp2o69E_EQ28nUf65JvFA-qMpJqyCnc0lSKpLGPrEU_bnSezdpdpQkq6saEroW8fvkua5LlJvCxMYgkaIEsfADzAoONFy19ICdzALPddjlyNLs66l2kZHxtKEhqQAZXfCLJHozn2Rs2E1cCApYCix9q5Dc77jo3WQ2JJ6U7wxSnVecIi7EcTPfQ" alt="Nexus Global Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Senior Staff Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">NEXUS GLOBAL LOGIC</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Led migration of legacy Java monolith to 150+ Go microservices. Implemented zero-trust networking via Istio/Envoy. Mentored 40+ engineers across 5 global squads while maintaining 99.999% uptime for core event mesh processing 2B+ events/day.</p></div>
+<!-- Project 02 -->
+<div class="relative border-[0.5px] border-outline-variant p-10 md:p-16 group cursor-pointer hover:bg-white/5 transition-colors duration-500"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2016 - 2020</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsK5bbJOLho2U15vO00axnX9HcuZSeIqprWuv-QUllqgQ9LNxSNFh33sPGJNrFfeYUVI2xK_gylZV47U7jo7BWL-yMDexkcs-uMW33tCW_67rSE-GB5RGugzbsCf6lj_p02zKZSnjxHK8SyuecX6y4Im-Z4A04MGS0kQYjtYWO_l98QLyWl9J6z6OR7x7qititQzN-TerQbJP9fR4kBpSvn7mwqMMpKWVm7jhONCU4cv11OvObw_rNwOrM" alt="Aether Dynamics Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Principal Systems Architect</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">AETHER DYNAMICS</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Designed low-latency trading engine handling $2B+ daily volume. Optimized Linux kernel networking stack for sub-microsecond packet processing. Implemented custom consensus protocols and optimized network stack performance across global datacenters.</p></div>
+<!-- Project 03 -->
+<div class="relative border-[0.5px] border-outline-variant p-10 md:p-16 group cursor-pointer hover:bg-white/5 transition-colors duration-500"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2014 - 2016</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLt8iz-nEHq1DkXNAC1Hvr3iTf2cM0trTxUZTFT-PbftcQJYjFfhCgiLtQPq94FrOZUr__nZd--lzYpu5JP0coCfujZ47IPwKwfYYqinBDEtNxg3bHObWVDSTS9njRj9Ypt6_qibp_1URNOFMjD64V0ry1gg6ZwyXnE3bClnxvvO2adYChDdNyQ0-alXO9QD5ZFV_lgsbT6Q_XdoTz9yU-6m4obR4uljXKKNna-eltRxaIpsUpCrPg_rcPs" alt="Vertex Cloud Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Lead Infrastructure Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">VERTEX CLOUD</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Architected multi-region Kubernetes clusters with automated disaster recovery and zero-downtime deployment pipelines for critical fintech infrastructure.</p></div>
+<div class="relative border-[0.5px] border-outline-variant p-10 md:p-16 group cursor-pointer hover:bg-white/5 transition-colors duration-500"><div class="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1 border-[0.5px] border-outline-variant group-hover:bg-primary transition-colors"></div><span class="font-label-sm text-label-sm text-on-surface-variant block mb-2 tracking-widest">2012 - 2014</span><div class="flex items-center gap-4 mb-2"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtM2_EqnLoirO1joOTWwGEIQZfCAcD0Jg00LWZwMk5ADK2WkmsJSD1j3KxWY1HwocYUiW1OR816310fmbvF2rO2STbZzdFoNkhFzI4MZoTRimHiMfW_GMJKOQtoW0TYEO84jZN8gtJLwIODCNwhtUwyr5pOpTvC0kWe-oFFSihiZmlQATwBXVyaISanOo6ZfuK36jE8SV5ZWNdsje8OG7ynmD_VxSqb1-drQMhlx4egXD2tbwPcEprrz-4" alt="Kernel Logic Logo" class="h-8 w-auto grayscale opacity-80 brightness-200"><h5 class="font-headline-md text-headline-md text-primary">Systems Software Engineer</h5></div><span class="font-code-block text-code-block text-on-surface-variant block mb-4 uppercase">KERNEL LOGIC</span><p class="font-body-md text-body-md text-on-surface-variant tracking-wide">Developed high-performance C++ networking primitives and optimized memory allocation strategies for HFT platforms requiring sub-microsecond execution.</p></div></div>
+</section>
+<!-- Connect Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-32 border-b-[0.5px] border-outline-variant relative reveal scroll-reveal glass-panel mt-12 active" data-parallax="0.1">
+<div class="flex justify-between items-end mb-16 border-b-[0.5px] border-outline-variant pb-4">
+<h3 class="font-label-md text-label-md text-primary uppercase tracking-widest glitch-text" data-text="INITIATE_CONTACT">INITIATE_CONTACT</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">COMMUNICATION / PROTOCOL</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-24 items-start relative z-10">
+<div>
+<h4 class="font-display-lg text-display-lg text-primary mb-8 leading-tight">Open a<br><span class="italic text-on-surface-variant">Channel.</span></h4>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-12 max-w-lg leading-relaxed tracking-wide">Currently available for strategic consulting and senior leadership roles focusing on highly scalable architectural challenges and distributed systems design.</p>
+<a class="inline-flex items-center gap-4 border-[0.5px] border-secondary px-8 py-5 text-secondary hover:bg-secondary/10 transition-colors font-label-md text-label-md tracking-widest group" href="#">
+<span class="material-symbols-outlined group-hover:-translate-y-1 transition-transform">download</span>
+                DOWNLOAD_RESUME.PDF
+            </a>
+</div>
+<form class="space-y-8 p-12 relative bg-background/50 backdrop-blur-sm border-[0.5px] border-outline-variant">
+<div class="absolute top-0 left-0 w-3 h-3 border-t-[1px] border-l-[1px] border-primary"></div>
+<div class="absolute top-0 right-0 w-3 h-3 border-t-[1px] border-r-[1px] border-primary"></div>
+<div class="absolute bottom-0 left-0 w-3 h-3 border-b-[1px] border-l-[1px] border-primary"></div>
+<div class="absolute bottom-0 right-0 w-3 h-3 border-b-[1px] border-r-[1px] border-primary"></div>
+<div class="relative group">
+<label class="font-code-block text-code-block text-on-surface-variant block mb-3 text-xs tracking-widest uppercase">IDENTIFIER</label>
+<input class="w-full bg-transparent border-0 border-b-[0.5px] border-outline-variant focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none focus:shadow-[0_0_15px_rgba(0,65,201,0.2)] text-primary font-body-md py-3 px-2 transition-all placeholder:text-on-surface-variant/50" placeholder="Name / Entity" type="text">
+</div>
+<div class="relative group">
+<label class="font-code-block text-code-block text-on-surface-variant block mb-3 text-xs tracking-widest uppercase">RETURN_ADDRESS</label>
+<input class="w-full bg-transparent border-0 border-b-[0.5px] border-outline-variant focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none focus:shadow-[0_0_15px_rgba(0,65,201,0.2)] text-primary font-body-md py-3 px-2 transition-all placeholder:text-on-surface-variant/50" placeholder="Email Address" type="email">
+</div>
+<div class="relative group">
+<label class="font-code-block text-code-block text-on-surface-variant block mb-3 text-xs tracking-widest uppercase">PAYLOAD</label>
+<textarea class="w-full bg-transparent border-0 border-b-[0.5px] border-outline-variant focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none focus:shadow-[0_0_15px_rgba(0,65,201,0.2)] text-primary font-body-md py-3 px-2 transition-all resize-none placeholder:text-on-surface-variant/50" placeholder="Message Details" rows="4"></textarea>
+</div>
+<button class="w-full border-[0.5px] border-primary text-primary py-5 mt-4 font-label-md text-label-md tracking-widest hover:bg-primary hover:text-background transition-colors duration-300 flex justify-center items-center gap-3 group" type="button">
+                TRANSMIT_DATA
+                <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+</div>
+</section>
+<!-- Philosophy Section -->
+<section class="relative py-48 px-margin-mobile md:px-margin-desktop flex items-center justify-center overflow-hidden glass-panel mt-12 border-[0.5px] border-outline-variant scroll-reveal reveal active" data-parallax="0.1">
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
+<span class="font-display-lg text-[120px] md:text-[200px] leading-none text-primary whitespace-nowrap select-none">THE PHILOSOPHY</span>
+</div>
+<div class="relative z-10 text-center">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-6">Code as Architecture.<br>Logic as Craft.</h2>
+<div class="w-24 h-[1px] bg-secondary mx-auto"></div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-12 glass-panel border-t-[0.5px] border-outline-variant z-40 relative scroll-reveal reveal active" data-parallax="0.05">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter w-full px-margin-mobile md:px-margin-desktop py-12 mx-auto max-w-container-max">
+<div>
+<div class="font-code-block text-code-block text-on-surface-variant mb-4">©2024 SYSTEM_ARCHITECT.V2 // ALL RIGHTS RESERVED</div>
+</div>
+<div class="flex flex-wrap gap-6 md:justify-end">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-secondary" href="#">GITHUB</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-secondary" href="#">LINKEDIN</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-secondary" href="#">SOURCE_CODE</a>
+<a class="font-label-sm text-label-sm text-secondary underline focus:outline-none focus:ring-1 focus:ring-secondary" href="#">STATUS:ONLINE</a>
+</div>
+</div>
+</footer>
+<script type="module">
+    // WebGL Shader setup for background
+    const canvas = document.getElementById('shader-bg');
+    const gl = canvas.getContext('webgl');
+
+    if (gl) {
+        // Vertex shader
+        const vsSource = `
+            attribute vec4 a_position;
+            varying vec2 v_texCoord;
+            void main() {
+                gl_Position = a_position;
+                v_texCoord = a_position.xy * 0.5 + 0.5;
+            }
+        `;
+
+        // Fragment shader from DataStore
+        const fsSource = `
+precision highp float;
+
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+varying vec2 v_texCoord;
+
+// Simplex 2D noise
+vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+
+float snoise(vec2 v){
+  const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+           -0.577350269189626, 0.024390243902439);
+  vec2 i  = floor(v + dot(v, C.yy) );
+  vec2 x0 = v -   i + dot(i, C.xx);
+  vec2 i1;
+  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+  i = mod(i, 289.0);
+  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+  + i.x + vec3(0.0, i1.x, 1.0 ));
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
+    dot(x12.zw,x12.zw)), 0.0);
+  m = m*m ;
+  m = m*m ;
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+  vec3 g;
+  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
+}
+
+void main() {
+    vec2 uv = v_texCoord;
+    vec2 mouse = u_mouse / u_resolution;
+    
+    float time = u_time * 0.05;
+    
+    // Create a "Digital Architecture" flow - more structured than smoke
+    float n1 = snoise(uv * 3.0 + vec2(time, time * 0.2));
+    float n2 = snoise(uv * 6.0 - vec2(time * 0.5, n1));
+    
+    // Grid pattern interaction
+    vec2 grid = fract(uv * 40.0);
+    float gridLine = smoothstep(0.02, 0.0, grid.x) + smoothstep(0.02, 0.0, grid.y);
+    
+    // Interaction
+    float d = distance(uv, mouse);
+    float glow = smoothstep(0.25, 0.0, d) * 0.12;
+    
+    // Base Color: Deep Technical Charcoal
+    vec3 color = vec3(0.015, 0.015, 0.02); 
+    
+    // Add "Data Streams"
+    float streams = smoothstep(0.49, 0.5, abs(n2));
+    color += vec3(0.1, 0.15, 0.25) * streams * 0.1;
+    
+    // Subtle grid glow
+    color += vec3(0.1, 0.12, 0.15) * gridLine * 0.03 * (n1 * 0.5 + 0.5);
+    
+    // Cursor glow
+    color += vec3(0.2, 0.3, 0.4) * glow;
+    
+    // Vignette
+    float vignette = smoothstep(1.3, 0.3, length(uv - 0.5));
+    color *= vignette;
+    
+    gl_FragColor = vec4(color, 1.0);
+}
+        `;
+
+        // Compile shader
+        function compileShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+        // Link program
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(program));
+        }
+
+        // Set up geometry
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        const positions = [
+            -1.0,  1.0,
+             1.0,  1.0,
+            -1.0, -1.0,
+             1.0, -1.0,
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+        const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+        gl.enableVertexAttribArray(positionAttributeLocation);
+        gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+        gl.useProgram(program);
+
+        // Uniforms
+        const timeLocation = gl.getUniformLocation(program, "u_time");
+        const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+        const mouseLocation = gl.getUniformLocation(program, "u_mouse");
+
+        let mouseX = 0;
+        let mouseY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = window.innerHeight - e.clientY; // Invert Y for WebGL
+        });
+
+        function resizeCanvasToDisplaySize(canvas) {
+            const displayWidth  = canvas.clientWidth;
+            const displayHeight = canvas.clientHeight;
+            if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+                canvas.width  = displayWidth;
+                canvas.height = displayHeight;
+                return true;
+            }
+            return false;
+        }
+
+        // Render loop
+        function render(time) {
+            resizeCanvasToDisplaySize(gl.canvas);
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+            gl.uniform1f(timeLocation, time * 0.001);
+            gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+            gl.uniform2f(mouseLocation, mouseX, mouseY);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+    }
+
+    // Parallax & Scroll Animations
+    document.addEventListener('DOMContentLoaded', () => {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
+        if (!prefersReducedMotion) {
+            // Intersection Observer for scroll reveals
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        // Don't unobserve to allow re-triggering or continuous parallax
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: "0px 0px -50px 0px"
+            });
+
+            document.querySelectorAll('.scroll-reveal, .reveal').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Parallax effect
+            const parallaxElements = document.querySelectorAll('[data-parallax]');
+            window.addEventListener('scroll', () => {
+                const scrollY = window.scrollY;
+                parallaxElements.forEach(el => {
+                    const speed = parseFloat(el.getAttribute('data-parallax'));
+                    el.style.transform = `translateY(${scrollY * speed}px)`;
+                });
+            });
+
+            // Magnetic hover effect
+            const magneticElements = document.querySelectorAll('.magnetic-wrap');
+            magneticElements.forEach(wrap => {
+                const link = wrap.querySelector('.magnetic-link');
+                wrap.addEventListener('mousemove', (e) => {
+                    const rect = wrap.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    link.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                });
+                wrap.addEventListener('mouseleave', () => {
+                    link.style.transform = `translate(0px, 0px)`;
+                });
+            });
+
+            // Code in Motion generator
+            const codeLayer = document.getElementById('code-layer');
+            const snippets = [
+                'fn compile_to_wasm()',
+                'impl Architectural for Logic',
+                'const State = useRef()',
+                '0x7F2A9B',
+                'struct Nexus { pub id: String }',
+                'use std::sync::Arc',
+                'useEffect(() => { observe() })',
+                'match event {',
+                'trait Computable',
+                'unsafe { optimize() }'
+            ];
+
+            for(let i=0; i<15; i++) {
+                const el = document.createElement('div');
+                el.className = 'floating-code';
+                el.textContent = snippets[Math.floor(Math.random() * snippets.length)];
+                
+                // Random positioning
+                const top = Math.random() * 100;
+                const left = Math.random() * 100;
+                el.style.top = `${top}%`;
+                el.style.left = `${left}%`;
+                
+                // Random float settings
+                el.setAttribute('data-speed-y', (Math.random() * 0.2 - 0.1).toFixed(3));
+                el.setAttribute('data-speed-x', (Math.random() * 0.1 - 0.05).toFixed(3));
+                
+                codeLayer.appendChild(el);
+            }
+
+            // Animate floating code
+            const codeElements = document.querySelectorAll('.floating-code');
+            let time = 0;
+            function animateCode() {
+                time += 0.01;
+                const scrollOffset = window.scrollY * 0.05;
+                
+                codeElements.forEach((el, index) => {
+                    const speedY = parseFloat(el.getAttribute('data-speed-y'));
+                    const speedX = parseFloat(el.getAttribute('data-speed-x'));
+                    
+                    const y = Math.sin(time + index) * 20 + (scrollOffset * speedY * 10);
+                    const x = Math.cos(time * 0.8 + index) * 20;
+                    
+                    el.style.transform = `translate(${x}px, ${y}px)`;
+                });
+                requestAnimationFrame(animateCode);
+            }
+            animateCode();
+        }
+    });
+</script>
+
+
+
+
+</body></html>
