@@ -7,14 +7,13 @@
  * 3. Or leave formspreeId empty to fall back to mailto
  */
 window.PORTFOLIO_CONFIG = {
-  name: "Arun",
-  title: "SYSTEM_ARCHITECT / SENIOR_STAFF",
-  email: "hello@example.com",
+  name: "Arun Singh",
+  title: "SENIOR SOFTWARE ENGINEER / BACKEND • DATA • AI",
+  email: "arunsin997@gmail.com",
   formspreeId: "", // e.g. "xpwzgkqr"
   resumeUrl: "./assets/resume.pdf",
   social: {
-    github: "https://github.com/",
-    linkedin: "https://linkedin.com/in/",
-    twitter: "https://x.com/",
+    github: "https://github.com/bytes-as",
+    linkedin: "https://www.linkedin.com/in/arunsin997",
   },
 };
