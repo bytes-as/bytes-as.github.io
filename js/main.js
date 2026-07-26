@@ -299,13 +299,82 @@ void main() {
   }
 
   /**
+   * Global WebGL + code-layer background:
+   * - Stays visually fixed through the hero
+   * - After leaving the hero, translates with scroll (parallax depth)
+   */
+  function initBackgroundScroll() {
+    const shader = document.getElementById("shader-bg");
+    const codeLayer = document.getElementById("code-layer");
+    const hero = document.getElementById("hero");
+    if (!shader && !codeLayer) return;
+
+    let current = 0;
+    let target = 0;
+    const ease = 0.08;
+    /** How much the bg moves vs scroll once past the hero */
+    const parallaxFactor = 0.38;
+
+    function measure() {
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      let heroEnd = window.innerHeight * 0.85;
+      if (hero) {
+        heroEnd = hero.offsetTop + hero.offsetHeight * 0.72;
+      }
+      // Hold fixed while in hero; then track scroll (negative = moves up with page)
+      if (scrollY <= heroEnd) {
+        target = 0;
+      } else {
+        target = (scrollY - heroEnd) * parallaxFactor;
+      }
+    }
+
+    function tick() {
+      measure();
+      current += (target - current) * ease;
+      if (Math.abs(target - current) < 0.05) current = target;
+      const y = -current;
+      if (shader) {
+        shader.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
+      }
+      // Code layer drifts a bit less for depth
+      if (codeLayer) {
+        codeLayer.style.transform = `translate3d(0, ${(y * 0.65).toFixed(2)}px, 0)`;
+      }
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener(
+      "scroll",
+      () => {
+        measure();
+      },
+      { passive: true }
+    );
+    window.addEventListener("resize", measure, { passive: true });
+    measure();
+    requestAnimationFrame(tick);
+  }
+
+  /**
    * Smooth parallax with lerp.
    * Section shells stay in document flow (no overlap / scroll fight).
-   * Only inner layers + hero media are transformed.
+   * Hero shell is excluded so only post-hero content + media drift.
+   * Hero atmosphere image still gets subtle media parallax.
    */
   function initSmoothParallax() {
     document.querySelectorAll("section[data-parallax]").forEach((section) => {
       if (section.querySelector(":scope > .parallax-inner")) return;
+
+      const isHero =
+        section.id === "hero" || section.classList.contains("hero-section");
+
+      // Hero: don't wrap whole section (keeps layout stable); media still parallaxes
+      if (isHero) {
+        section.classList.add("parallax-section");
+        section.removeAttribute("data-parallax");
+        return;
+      }
 
       const speed = section.getAttribute("data-parallax");
       const cs = window.getComputedStyle(section);
@@ -361,10 +430,10 @@ void main() {
         const rect = host.getBoundingClientRect();
         const center = rect.top + rect.height / 2;
         const dist = (center - viewH / 2) / viewH;
-        const range = item.isMedia ? 110 : 52;
+        const range = item.isMedia ? 90 : 64;
         item.target = Math.max(
           -range,
-          Math.min(range, -dist * item.speed * range * 1.8)
+          Math.min(range, -dist * item.speed * range * 2.1)
         );
       });
     }
@@ -413,7 +482,8 @@ void main() {
       observer.observe(el);
     });
 
-    // Smooth parallax: section shells stay in document flow; only inners move (no overlap / scroll fight)
+    // Global bg moves with scroll after hero; section inners parallax (hero shell fixed)
+    initBackgroundScroll();
     initSmoothParallax();
 
     document.querySelectorAll(".magnetic-wrap").forEach((wrap) => {

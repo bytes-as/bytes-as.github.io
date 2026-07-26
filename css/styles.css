@@ -43,11 +43,23 @@ html {
 
 #shader-bg {
   position: fixed;
-  inset: 0;
+  /* Taller than viewport so scroll-parallax never shows empty edges */
+  top: -15vh;
+  left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 130vh;
   z-index: -1;
   pointer-events: none;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* Floating code rain — also scroll-linked (see main.js) */
+#code-layer {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .glass-panel {
