@@ -122,11 +122,6 @@ html {
     transition-delay: 0.3s;
   }
 
-  .magnetic-wrap {
-    position: relative;
-    display: inline-block;
-  }
-
   .glitch-text {
     position: relative;
     display: inline-block;

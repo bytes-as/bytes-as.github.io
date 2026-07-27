@@ -96,7 +96,7 @@
       const formspreeId = (config.formspreeId || "").trim();
 
       if (!formspreeId) {
-        // Mailto fallback - works everywhere, no backend
+        // Mailto fallback — no backend; visitor finishes send in their mail app
         const subject = encodeURIComponent(`Portfolio contact from ${name}`);
         const body = encodeURIComponent(
           `Name: ${name}\nEmail: ${email}\n\n${message}`
@@ -105,7 +105,7 @@
         window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
         setStatus(
           "success",
-          "OPENING MAIL CLIENT… (set formspreeId in js/config.js for in-page send)"
+          "OPENING YOUR MAIL CLIENT… FINISH SEND THERE, OR USE THE EMAIL LINK ABOVE"
         );
         return;
       }
@@ -488,7 +488,7 @@ void main() {
     measureTargets();
     requestAnimationFrame(tick);
   }
-  // Scroll reveals, magnetic nav, floating code
+  // Scroll reveals + floating code
   function initMotion() {
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -520,20 +520,6 @@ void main() {
     // Global bg moves with scroll after hero; section inners parallax (hero shell fixed)
     initBackgroundScroll();
     initSmoothParallax();
-
-    document.querySelectorAll(".magnetic-wrap").forEach((wrap) => {
-      const link = wrap.querySelector(".magnetic-link");
-      if (!link) return;
-      wrap.addEventListener("mousemove", (e) => {
-        const rect = wrap.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        link.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
-      });
-      wrap.addEventListener("mouseleave", () => {
-        link.style.transform = "translate(0px, 0px)";
-      });
-    });
 
     const codeLayer = document.getElementById("code-layer");
     if (!codeLayer) return;

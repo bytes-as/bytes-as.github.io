@@ -10,7 +10,7 @@ window.PORTFOLIO_CONFIG = {
   name: "Arun Singh",
   title: "SENIOR SOFTWARE ENGINEER / BACKEND • DATA • AI",
   email: "arunsin997@gmail.com",
-  formspreeId: "", // e.g. "xpwzgkqr"
+  formspreeId: "mnjelzdy",
   // Primary: Google Drive (edit the same file in Drive — no site redeploy needed)
   resumeUrl:
     "https://drive.google.com/file/d/1Thf3Xes2nEsD-5w_AloYTndrsYuNSL5v/view?usp=sharing",
