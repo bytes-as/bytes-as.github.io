@@ -1,14 +1,38 @@
 (function () {
   const config = window.PORTFOLIO_CONFIG || {};
 
+  const RESUME_FALLBACK = "./assets/resume.pdf";
+
+  /** Prefer Drive (or any remote) so the CV can be updated without redeploying. */
+  function resolveResumeUrl() {
+    const primary = (config.resumeUrl || "").trim();
+    const fallback = (config.resumeFallbackUrl || RESUME_FALLBACK).trim();
+    return primary || fallback || RESUME_FALLBACK;
+  }
+
+  function isExternalUrl(url) {
+    return /^https?:\/\//i.test(url || "");
+  }
+
   // Apply config to DOM placeholders
   function applyConfig() {
+    const resumeHref = resolveResumeUrl();
+
     document.querySelectorAll("[data-config]").forEach((el) => {
       const key = el.getAttribute("data-config");
-      const value = key.split(".").reduce((obj, k) => obj?.[k], config);
-      if (value == null) return;
+      let value =
+        key === "resumeUrl"
+          ? resumeHref
+          : key.split(".").reduce((obj, k) => obj?.[k], config);
+      if (value == null || value === "") return;
 
-      if (el.tagName === "A" && (key.includes("Url") || key.startsWith("social") || key === "email" || key === "resumeUrl")) {
+      if (
+        el.tagName === "A" &&
+        (key.includes("Url") ||
+          key.startsWith("social") ||
+          key === "email" ||
+          key === "resumeUrl")
+      ) {
         if (key === "email") {
           el.href = `mailto:${value}`;
           if (!el.textContent.trim() || el.hasAttribute("data-config-text")) {
@@ -16,6 +40,17 @@
           }
         } else {
           el.href = value;
+          if (key === "resumeUrl") {
+            // Cross-origin (Drive): open in new tab; native download attr is a no-op
+            if (isExternalUrl(value)) {
+              el.target = "_blank";
+              el.rel = "noopener noreferrer";
+              el.removeAttribute("download");
+            } else {
+              el.removeAttribute("target");
+              // keep download if markup set it for the local fallback
+            }
+          }
         }
       } else if (el.hasAttribute("data-config-text") || el.tagName !== "A") {
         el.textContent = value;

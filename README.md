@@ -22,7 +22,10 @@ window.PORTFOLIO_CONFIG = {
   title: "SYSTEM_ARCHITECT / SENIOR_STAFF",
   email: "you@domain.com",
   formspreeId: "",           // see Contact below
-  resumeUrl: "./assets/resume.pdf",
+  // Primary: Google Drive (update the PDF there — no site redeploy)
+  resumeUrl: "https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing",
+  // Fallback if resumeUrl is empty
+  resumeFallbackUrl: "./assets/resume.pdf",
   social: {
     github: "https://github.com/you",
     linkedin: "https://linkedin.com/in/you",
@@ -31,7 +34,7 @@ window.PORTFOLIO_CONFIG = {
 };
 ```
 
-Then replace placeholder copy in `index.html` (roles, projects, education) with your real content. Drop `resume.pdf` into `assets/`.
+Then replace placeholder copy in `index.html` (roles, projects, education) with your real content. Keep a copy of the PDF in `assets/resume.pdf` as a fallback only.
 
 Design tokens and rationale live in `DESIGN.md`. The original mockup HTML is `code.html`.
 

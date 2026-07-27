@@ -11,7 +11,11 @@ window.PORTFOLIO_CONFIG = {
   title: "SENIOR SOFTWARE ENGINEER / BACKEND • DATA • AI",
   email: "arunsin997@gmail.com",
   formspreeId: "", // e.g. "xpwzgkqr"
-  resumeUrl: "./assets/resume.pdf",
+  // Primary: Google Drive (edit the same file in Drive — no site redeploy needed)
+  resumeUrl:
+    "https://drive.google.com/file/d/1Thf3Xes2nEsD-5w_AloYTndrsYuNSL5v/view?usp=sharing",
+  // Offline / Drive-down fallback (shipped with the site)
+  resumeFallbackUrl: "./assets/resume.pdf",
   social: {
     github: "https://github.com/bytes-as",
     linkedin: "https://www.linkedin.com/in/arunsin997",
