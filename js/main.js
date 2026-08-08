@@ -566,6 +566,63 @@ void main() {
     animateCode();
   }
 
+  // Click-to-enlarge for figures marked with [data-lightbox]
+  function initLightbox() {
+    const triggers = document.querySelectorAll("[data-lightbox]");
+    if (!triggers.length) return;
+
+    const overlay = document.createElement("div");
+    overlay.className = "lightbox-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-label", "Enlarged image");
+    overlay.innerHTML = `
+      <button type="button" class="lightbox-close" aria-label="Close enlarged image">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <img class="lightbox-img" alt="">
+    `;
+    document.body.appendChild(overlay);
+
+    const img = overlay.querySelector(".lightbox-img");
+    const closeBtn = overlay.querySelector(".lightbox-close");
+    let lastFocused = null;
+
+    function open(src, alt, trigger) {
+      lastFocused = trigger;
+      img.src = src;
+      img.alt = alt || "";
+      overlay.classList.add("active");
+      document.body.classList.add("lightbox-open");
+      closeBtn.focus();
+    }
+
+    function close() {
+      overlay.classList.remove("active");
+      document.body.classList.remove("lightbox-open");
+      if (lastFocused) lastFocused.focus();
+    }
+
+    triggers.forEach((el) => {
+      el.addEventListener("click", () => {
+        const src = el.getAttribute("data-lightbox");
+        const alt =
+          el.getAttribute("data-lightbox-alt") ||
+          el.querySelector("img")?.alt ||
+          "";
+        open(src, alt, el);
+      });
+    });
+
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay || e.target.closest(".lightbox-close")) close();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && overlay.classList.contains("active")) close();
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     applyConfig();
     initContactForm();
@@ -573,5 +630,6 @@ void main() {
     initNavHighlight();
     initShader();
     initMotion();
+    initLightbox();
   });
 })();

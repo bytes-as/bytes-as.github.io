@@ -107,10 +107,13 @@ Relative paths (`./css`, `./js`, `./assets`) are already set so project pages wo
 
 ```
 ├── index.html          # Live site
+├── blog/
+│   ├── index.html      # Post listing
+│   └── the-moat-is-web-access.html
 ├── css/styles.css
 ├── js/config.js        # Your details + Formspree ID
 ├── js/main.js          # Shader, motion, contact form
-├── assets/             # resume.pdf, portrait, etc.
+├── assets/             # resume.pdf, portrait, blog figures, etc.
 ├── vercel.json
 ├── DESIGN.md           # Design system
 ├── code.html           # Original design export
