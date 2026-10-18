@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Open AI models inherit licences from their ancestors, and model cards often don't say so. How ModelBrain reads a model's real lineage, and its weights, in FalkorDB.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="The Card Says Apache-2.0. The Weights Say Llama.">
+  <meta property="og:description" content="Open AI models inherit licences from their ancestors, and model cards often don't say so. How ModelBrain reads a model's real lineage, and its weights, in FalkorDB.">
+  <meta property="og:url" content="https://bytes-as.github.io/blog/the-card-says-apache-the-weights-say-llama.html">
+  <meta property="og:image" content="https://web-production-8d8cb.up.railway.app/opengraph-image">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://bytes-as.github.io/blog/the-card-says-apache-the-weights-say-llama.html">
+  <meta name="theme-color" content="#0a0a0b">
+  <title>The Card Says Apache-2.0. The Weights Say Llama. // Arun Singh</title>
+  <link rel="icon" href="../assets/favicon.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="../assets/icon-512.png" type="image/png" sizes="512x512">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" sizes="180x180">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            background: "#0a0a0b",
+            "on-background": "#e2e2e4",
+            primary: "#ffffff",
+            "on-primary": "#000000",
+            secondary: "#a3b5ff",
+            "on-secondary": "#ffffff",
+            "on-surface-variant": "#c4c7c7",
+            "outline-variant": "#333536",
+            "surface-variant": "#1c1d1e",
+            surface: "#0a0a0b",
+          },
+          spacing: {
+            gutter: "24px",
+            "container-max": "1440px",
+            "margin-mobile": "24px",
+            "margin-desktop": "64px",
+          },
+          fontFamily: {
+            display: ["Playfair Display", "serif"],
+            headline: ["Playfair Display", "serif"],
+            body: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+          },
+          fontSize: {
+            "display-lg": ["clamp(2.25rem, 5.5vw, 4.25rem)", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "700" }],
+            "headline-lg": ["clamp(1.75rem, 3vw, 3rem)", { lineHeight: "1.2", fontWeight: "600" }],
+            "headline-md": ["clamp(1.5rem, 2.5vw, 2rem)", { lineHeight: "1.3", fontWeight: "500" }],
+            "body-lg": ["18px", { lineHeight: "1.6" }],
+            "body-md": ["16px", { lineHeight: "1.6" }],
+            "label-md": ["14px", { lineHeight: "1.4", letterSpacing: "0.05em", fontWeight: "500" }],
+            "label-sm": ["12px", { lineHeight: "1.4", letterSpacing: "0.1em" }],
+            code: ["14px", { lineHeight: "1.7" }],
+          },
+          maxWidth: {
+            "container-max": "1440px",
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body text-body-md antialiased selection:bg-secondary selection:text-on-secondary relative overflow-x-hidden max-w-[100vw]">
+  <canvas id="shader-bg"></canvas>
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" id="code-layer" aria-hidden="true"></div>
+
+  <header class="w-full top-0 sticky glass-panel border-b-[0.5px] border-outline-variant z-40">
+    <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 mx-auto max-w-container-max relative">
+      <div class="scan-line" aria-hidden="true"></div>
+      <a href="../index.html" class="font-headline text-headline-md font-bold tracking-tighter text-primary reveal stagger-1 active">Arun&nbsp;|&nbsp;Software Developer</a>
+
+      <nav class="hidden md:flex space-x-8 items-center reveal stagger-2 active" aria-label="Primary">
+        <a class="font-mono text-label-md text-on-surface-variant hover:text-primary transition-colors px-2 py-1 inline-block" href="../index.html#projects">PROJECTS</a>
+        <a class="font-mono text-label-md text-on-surface-variant hover:text-primary transition-colors px-2 py-1 inline-block" href="../index.html#expertise">EXPERTISE</a>
+        <a class="font-mono text-label-md text-secondary font-bold transition-colors px-2 py-1 inline-block" href="./index.html">BLOG</a>
+        <a class="font-mono text-label-md text-on-surface-variant hover:text-primary transition-colors px-2 py-1 inline-block" href="../index.html#contact">CONTACT</a>
+      </nav>
+
+      <button id="nav-toggle" class="md:hidden text-primary font-mono text-label-sm tracking-widest" type="button" aria-expanded="false" aria-controls="mobile-nav">
+        MENU
+      </button>
+    </div>
+    <nav id="mobile-nav" class="mobile-nav md:hidden px-margin-mobile" aria-label="Mobile">
+      <a class="font-mono text-label-md text-on-surface-variant hover:text-primary" href="../index.html#projects">PROJECTS</a>
+      <a class="font-mono text-label-md text-on-surface-variant hover:text-primary" href="../index.html#expertise">EXPERTISE</a>
+      <a class="font-mono text-label-md text-secondary" href="./index.html">BLOG</a>
+      <a class="font-mono text-label-md text-on-surface-variant hover:text-primary" href="../index.html#contact">CONTACT</a>
+    </nav>
+  </header>
+
+  <main class="flex-grow w-full relative z-10">
+    <div class="max-w-container-max w-full mx-auto">
+      <article class="px-margin-mobile md:px-margin-desktop pt-24 md:pt-32 pb-28 relative reveal stagger-3 active overflow-hidden">
+        <div class="max-w-3xl mx-auto">
+        <a href="./index.html" class="inline-flex items-center gap-2 font-mono text-label-sm text-on-surface-variant hover:text-primary tracking-widest mb-10 transition-colors">
+          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+          BACK_TO_BLOG
+        </a>
+
+        <header class="mb-16">
+          <p class="font-mono text-label-sm text-secondary mb-6 tracking-widest">2026.10.19 // AI SYSTEMS · GRAPHS</p>
+          <h1 class="font-display text-display-lg text-primary mb-8 leading-tight">The Card Says Apache&#8209;2.0. The Weights Say Llama.</h1>
+          <p class="font-body text-body-lg text-on-surface-variant tracking-wide">
+            Every open AI model ships with a licence on its model card, and almost nobody checks where the model actually came from. I built ModelBrain, a tool that reads the licence a model really inherited: through its family tree, and through its own weights. This is what was hard about it, and why a graph database turned out to be the only sane place to put the answer.
+          </p>
+          <div class="flex flex-wrap gap-3 mt-8">
+            <a href="https://web-production-8d8cb.up.railway.app" target="_blank" rel="noopener noreferrer" class="font-mono text-label-sm border-[0.5px] border-outline-variant px-3 py-1 text-secondary hover:text-primary transition-colors">LIVE_DEMO ↗</a>
+            <a href="https://github.com/bytes-as/modelbrain" target="_blank" rel="noopener noreferrer" class="font-mono text-label-sm border-[0.5px] border-outline-variant px-3 py-1 text-secondary hover:text-primary transition-colors">SOURCE ↗</a>
+            <a href="https://youtu.be/OkfR3QbEEb4" target="_blank" rel="noopener noreferrer" class="font-mono text-label-sm border-[0.5px] border-outline-variant px-3 py-1 text-secondary hover:text-primary transition-colors">3-MIN_VIDEO ↗</a>
+          </div>
+        </header>
+        </div>
+
+        <div class="border-t-[0.5px] border-outline-variant mb-16" aria-hidden="true"></div>
+
+        <div class="max-w-3xl mx-auto space-y-8 font-body text-body-lg text-on-surface-variant tracking-wide leading-relaxed">
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">One line of code, one licence you never read</h2>
+
+          <p>Somewhere right now, an engineer is adding a line like <code class="font-mono text-code text-secondary">from_pretrained("some-org/some-model")</code> to a product. Increasingly it isn't even an engineer: it's a coding agent picking a model because the benchmark looked good. Before that line ships, someone glances at the model card. It says <code class="font-mono text-code text-secondary">apache-2.0</code>. Use it for anything. Done.</p>
+
+          <p>Here's the problem. Most open models aren't original. They're fine-tunes of fine-tunes, quantised copies, merges of two parents, re-uploads with a fresh name. And the licence of the <em>original</em> model doesn't evaporate when someone uploads a derivative. The obligations travel with the weights. The card is just text a person typed, and it only describes the last hop.</p>
+
+          <p>A real example, live on Hugging Face as I write this. <code class="font-mono text-code text-secondary">OPEA/Llama-3.2V-11B-cot-int4-sym-inc</code> declares apache-2.0. It's a quantisation of <code class="font-mono text-code text-secondary">Xkev/Llama-3.2V-11B-cot</code>, which also declares apache-2.0. Xkev is a fine-tune of Meta's Llama 3.2 11B Vision, and Meta's licence for its multimodal Llama 3.2 models does not grant those rights to companies based in the EU. Two cards say "free for anyone". The root says a startup in Berlin can't ship it.</p>
+
+          <figure class="not-prose my-12">
+            <button
+              type="button"
+              class="group relative block w-full text-left border-[0.5px] border-outline-variant p-3 md:p-5 glass-panel bg-surface-variant/40 cursor-zoom-in"
+              data-lightbox="../assets/blog/the-card-says-apache-the-weights-say-llama/fig1-chain-of-title.svg"
+              data-lightbox-alt="A real chain of title: two cards say apache-2.0, the root is Meta's Llama 3.2 Vision, whose licence excludes EU companies"
+              aria-label="Enlarge diagram: the chain of title from OPEA to Meta"
+            >
+              <div class="absolute top-0 left-0 w-8 h-8 border-t border-l border-primary/50 m-2 pointer-events-none" aria-hidden="true"></div>
+              <div class="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-primary/50 m-2 pointer-events-none" aria-hidden="true"></div>
+              <img
+                src="../assets/blog/the-card-says-apache-the-weights-say-llama/fig1-chain-of-title.svg"
+                alt="A real chain of title: two cards say apache-2.0, the root is Meta's Llama 3.2 Vision, whose licence excludes EU companies"
+                class="w-full h-auto bg-white transition-opacity duration-300 group-hover:opacity-80"
+                width="1440"
+                height="600"
+                loading="lazy"
+                decoding="async"
+              >
+            </button>
+            <figcaption class="font-mono text-label-sm text-on-surface-variant/70 tracking-wide mt-4 text-center">
+              The card describes the last hop. The obligations come from the first one.
+            </figcaption>
+          </figure>
+
+          <p>Nobody in that chain did anything sinister. Metadata drifts, people copy cards, fields get left blank. But the company at the end of the chain carries the risk, and the tools that check licences today read exactly one thing: the card. So I built ModelBrain to answer one question properly: <strong class="text-primary">can this company ship this model, in these countries, and who has to sign off?</strong></p>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">Pain point one: the paperwork is wrong, or silent</h2>
+
+          <p>The obvious approach is to follow the <code class="font-mono text-code text-secondary">base_model</code> field on each card up to the root. That works until it doesn't, and it stops working constantly. Re-uploads leave the field empty. Fine-tunes name a sibling instead of the real parent. Renamed repositories quietly redirect, so a lineage you crawled last week now points at an id that no longer exists.</p>
+
+          <p>How bad is it? Across the 381 models I fingerprinted, <strong class="text-primary">169 have weights matching a parent their card never mentions</strong>, and 119 of those trace back to a licence with real conditions attached. One card says WTFPL, the "do what you want" licence; its sampled weights are identical to Meta's Llama 3.1 8B Instruct. Another, from a large company, names Llama 3.1 as its base, while its weights sit measurably closer to Llama 3. Many of these cards explain their history in prose. The machine-readable metadata, the part that scanners and agents actually read, doesn't.</p>
+
+          <p>If the paperwork can't be trusted, you need evidence that can't be typed in.</p>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">Pain point two: you can't download 16 GB to check</h2>
+
+          <p>The evidence is in the weights. A fine-tune starts from its parent's numbers and moves them a little; an independently trained model of the same shape has numbers that look like noise next to it. So compare the weights. The catch: an 8B model is 16 GB, and I wanted to check hundreds of them from a laptop.</p>
+
+          <p>The trick is that safetensors files put a JSON header at the front that says exactly where every tensor lives, byte for byte. With HTTP range requests you can read that header, then read 512 values from an attention projection a quarter of the way into the network and 512 from an MLP projection further down. That's a 1,024-number fingerprint for about <strong class="text-primary">2 KB of traffic</strong>, never the whole file. The same idea works for GGUF, the format people run in Ollama and LM Studio: parse the header, sample F16, BF16 or Q8_0 tensors, land in the same space.</p>
+
+          <p>The numbers separate cleanly. Fine-tunes against their parent typically score 0.98 to 0.9995 cosine similarity. Unrelated models with identical tensor shapes, such as Llama 3 8B and Mistral 7B, score about zero. To check that wasn't wishful thinking, I calibrated on 15 known parent/child pairs and 15 unrelated same-shape pairs: the lowest real pair was 0.648 (a heavily instruction-tuned Gemma against its base), the highest unrelated pair was −0.02, and there were zero false links at the thresholds the product uses.</p>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">Pain point three: family trees are messy</h2>
+
+          <p>Real lineage isn't a tidy chain. Three things bit me hard.</p>
+
+          <p><strong class="text-primary">Merges.</strong> Model merges blend two parents, so a child can owe obligations to both. I fit each candidate child as a least-squares mix of two parents, and a known 60/40 merge came back as 0.600 / 0.402. The first version also "found" merges everywhere among near-identical re-uploads, because any two copies of the same model explain each other perfectly. The fix was a rule: only accept a merge when the best single parent genuinely can't explain the weights, and a second parent removes almost all of what's left.</p>
+
+          <p><strong class="text-primary">Cycles.</strong> Weight similarity is symmetric; ancestry isn't. At one point an inferred edge from a popular re-upload back to its own descendant closed a loop, and a "who is my ancestor" query started going in circles. Every write of an inferred edge now refuses to create a path back to itself, enforced inside the query.</p>
+
+          <p><strong class="text-primary">Renames.</strong> Hugging Face answers a renamed repo with a redirect. My client didn't follow it, so whole branches of lineage silently vanished. Following redirects and merging aliases into one canonical node fixed a dozen models at once.</p>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">Pain point four: an answer you can't defend is worthless</h2>
+
+          <p>A compliance tool that says "blocked, trust me" is useless to the lawyer who has to sign off, and dangerous in the hands of an agent. So every ModelBrain verdict carries three things: the path that produced it, the licence sentence <em>quoted word for word</em> from the official text with a link to the source, and the query that computed it. Quotes are never paraphrased and never stored in the repo; they're fetched from the official licence text at startup and matched by locator, so a changed licence text is caught rather than misquoted. A language model is allowed to phrase an explanation. It is never allowed to decide.</p>
+
+          <p>I tested the decisions on 160 frozen cases across an EU and a US company. ModelBrain never once said "allowed" where the answer was "blocked". Reading the card alone gets 27.5% right. Reviewing the disagreements honestly also caught a real bug: one model merged a parent licensed CC BY-NC-ND (non-commercial, no derivatives), and the product didn't know that licence existed yet, so it said "needs a person" instead of "blocked". The cheap answer would have been to change the label. The right one was to teach the product the licence.</p>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">Pain point five: the past keeps changing</h2>
+
+          <p>Licences get fixed after the fact, and the fix almost never travels. On 9 July 2025 someone opened a discussion asking <code class="font-mono text-code text-secondary">Xkev/Llama-3.2V-11B-cot</code> about its licence. 130 days later the author uploaded Meta's licence file. The card still says apache-2.0, and none of its nine children picked up the change.</p>
+
+          <p>So ModelBrain doesn't just answer; it remembers what each answer rested on. Every company decision is an append-only ruling linked to the exact facts it used. When an upstream model changes, a reverse traversal finds every descendant, reopens every ruling that rested on any of them, and opens a review task for the person who owns that deployment. Approving the review writes a new ruling that supersedes the old one. Nothing is edited in place, so the history is the audit trail.</p>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">Pain point six: nobody will tell you what they use</h2>
+
+          <p>The most useful evidence is a second opinion: another company that already verified "this model really comes from that one". But no company wants to publish which models it runs. So each company's decisions live in its own private graph, and when a company confirms a lineage edge, the shared graph receives only a salted hash. Two different hashes on the same edge raise its trust tier for everyone, and a cautious company's "cannot determine" becomes a real answer, without anyone learning who confirmed it.</p>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">Why FalkorDB was the right tool</h2>
+
+          <p>Look back at those six problems and they're all the same shape: <em>things connected to things</em>, with the answer living in the connections. Models derive from models, licences impose clauses, rulings rest on facts, people own deployments, companies vouch for edges. The usual way to build this is a relational database, plus a vector store, plus a pile of glue code between them, and the glue always wins. FalkorDB let me skip the glue entirely. A few things stood out.</p>
+
+          <p><strong class="text-primary">Vectors live inside the graph.</strong> This is the one that made the project possible. The weight fingerprints sit on the model nodes under a cosine vector index, so one Cypher statement goes from a fingerprint, to the nearest parent, to its trusted ancestry, to the licence clauses. No second database, no syncing ids between systems, no N+1 round trips. Here's the real query, lightly trimmed:</p>
+
+          <pre class="not-prose font-mono text-code text-on-surface-variant bg-surface-variant/60 border-[0.5px] border-outline-variant p-6 overflow-x-auto"><code><span class="text-on-surface-variant/60">// weights → nearest parent → trusted ancestry → licence clauses</span>
+MATCH (c:Model {id: $id})
+CALL db.idx.vector.queryNodes('Model', 'dna', $k, c.dna) YIELD node, score
+WITH c, node, 1 - score AS sim
+WHERE node &lt;&gt; c AND node.dna_sig = c.dna_sig AND sim &gt;= $min_sim
+WITH node, sim ORDER BY sim DESC LIMIT 1
+MATCH p = (node)-[:DERIVED_FROM*0..6]-&gt;(a:Model)
+WHERE all(r IN relationships(p) WHERE r.tier &gt;= $min_tier)
+MATCH (a)-[:DECLARES]-&gt;(l:License)
+OPTIONAL MATCH (l)-[:IMPOSES]-&gt;(cl:Clause)
+RETURN node.id AS parent, sim, [n IN nodes(p) | n.id] AS path,
+       l.key AS licence, collect(DISTINCT cl.id) AS clauses</code></pre>
+
+          <p>That returns in a few milliseconds. Read the <code class="font-mono text-code text-secondary">WHERE all(...)</code> line again: trust tiers live on the edges and are enforced <em>inside</em> the traversal, so a strict company that refuses inferred lineage gets that behaviour from the query itself, not from post-processing in application code.</p>
+
+          <figure class="not-prose my-12">
+            <button
+              type="button"
+              class="group relative block w-full text-left border-[0.5px] border-outline-variant p-3 md:p-5 glass-panel bg-surface-variant/40 cursor-zoom-in"
+              data-lightbox="../assets/blog/the-card-says-apache-the-weights-say-llama/fig2-one-query.svg"
+              data-lightbox-alt="From a 2 KB range read to a fingerprint, then one FalkorDB query: vector index, ancestry walk, licence clauses"
+              aria-label="Enlarge diagram: one query from weights to licence clauses"
+            >
+              <div class="absolute top-0 left-0 w-8 h-8 border-t border-l border-primary/50 m-2 pointer-events-none" aria-hidden="true"></div>
+              <div class="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-primary/50 m-2 pointer-events-none" aria-hidden="true"></div>
+              <img
+                src="../assets/blog/the-card-says-apache-the-weights-say-llama/fig2-one-query.svg"
+                alt="From a 2 KB range read to a fingerprint, then one FalkorDB query: vector index, ancestry walk, licence clauses"
+                class="w-full h-auto bg-white transition-opacity duration-300 group-hover:opacity-80"
+                width="1440"
+                height="560"
+                loading="lazy"
+                decoding="async"
+              >
+            </button>
+            <figcaption class="font-mono text-label-sm text-on-surface-variant/70 tracking-wide mt-4 text-center">
+              Two kilobytes in, a defensible answer out. Everything in blue is a single FalkorDB query.
+            </figcaption>
+          </figure>
+
+          <p><strong class="text-primary">Many graphs, one instance.</strong> FalkorDB treats graphs as cheap, named things. ModelBrain runs a shared hub of public facts, one private graph per company, and a sandbox per website visitor, cloned from a demo company with <code class="font-mono text-code text-secondary">GRAPH.COPY</code> and thrown away two hours later. Per-tenant memory, isolation and a safe playground for strangers, with zero extra infrastructure.</p>
+
+          <figure class="not-prose my-12">
+            <button
+              type="button"
+              class="group relative block w-full text-left border-[0.5px] border-outline-variant p-3 md:p-5 glass-panel bg-surface-variant/40 cursor-zoom-in"
+              data-lightbox="../assets/blog/the-card-says-apache-the-weights-say-llama/fig3-many-graphs.svg"
+              data-lightbox-alt="One FalkorDB instance holds a shared hub, a private graph per company and a GRAPH.COPY sandbox per visitor; companies send only salted hashes to the hub"
+              aria-label="Enlarge diagram: many graphs in one FalkorDB"
+            >
+              <div class="absolute top-0 left-0 w-8 h-8 border-t border-l border-primary/50 m-2 pointer-events-none" aria-hidden="true"></div>
+              <div class="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-primary/50 m-2 pointer-events-none" aria-hidden="true"></div>
+              <img
+                src="../assets/blog/the-card-says-apache-the-weights-say-llama/fig3-many-graphs.svg"
+                alt="One FalkorDB instance holds a shared hub, a private graph per company and a GRAPH.COPY sandbox per visitor; companies send only salted hashes to the hub"
+                class="w-full h-auto bg-white transition-opacity duration-300 group-hover:opacity-80"
+                width="1440"
+                height="620"
+                loading="lazy"
+                decoding="async"
+              >
+            </button>
+            <figcaption class="font-mono text-label-sm text-on-surface-variant/70 tracking-wide mt-4 text-center">
+              Shared facts in one graph, private decisions in their own. The hub never learns who uses what.
+            </figcaption>
+          </figure>
+
+          <p><strong class="text-primary">Graph algorithms are just Cypher.</strong> Weakly connected components group re-uploads that share file fingerprints. PageRank surfaces the models whose permissive card hides a restrictive ancestor and that the most other models depend on. Betweenness finds the chokepoints, the single models where one licence fix would reach the most descendants. Label propagation finds families. Each is one <code class="font-mono text-code text-secondary">CALL</code> away, on the live graph, with no export to an analytics stack.</p>
+
+          <p><strong class="text-primary">Operations that stay boring.</strong> One Docker image, with a browser UI for poking at the graph while you debug. When it was time to deploy, I seeded production by dumping the local graphs and restoring them on the server; the vector index came across intact, and a hub that took a long crawl to build was live in seconds.</p>
+
+          <p>The best test of whether a database is central or decorative is to turn it off. Stop FalkorDB and ModelBrain doesn't degrade into a worse answer: it returns a 503, because there is no answer without the graph. That's what I wanted. The graph isn't where the data is stored; it's where the reasoning happens.</p>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">Notes for the next person building on it</h2>
+
+          <p>A few things I'd have liked to know on hour one:</p>
+
+          <ul class="list-disc pl-6 space-y-3">
+            <li><code class="font-mono text-code text-secondary">db.idx.vector.queryNodes</code> returns a cosine <em>distance</em>, so similarity is <code class="font-mono text-code text-secondary">1 - score</code>. Obvious once you know it, very confusing before.</li>
+            <li>A vector of the wrong length is simply not indexed. Validate dimensions before you write, or a model quietly disappears from search.</li>
+            <li><code class="font-mono text-code text-secondary">vec.cosineDistance(a, b)</code> works in plain Cypher for one-off comparisons, which made the calibration a pure graph job.</li>
+            <li>Keep variable-length paths bounded (<code class="font-mono text-code text-secondary">*1..6</code>) and run reads with the read-only query command; both keep latency flat as the graph grows.</li>
+            <li>For heavy pairwise analysis, pull per-node sets in one query and pair them in code rather than writing one giant pattern; the default query timeout is there to protect you.</li>
+          </ul>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">The part that made it feel real: agents</h2>
+
+          <p>Agents are where the graph really earns its keep. ModelBrain is also an MCP server. In a real Claude Code session, I asked it to add the OPEA model to a pipeline for a German product. Before touching any code, the agent called ModelBrain's <code class="font-mono text-code text-secondary">can_i_use</code> tool, got back BLOCKED with the path to Meta's licence and the clause, and declined to add the model. A GitHub Action runs the same check on every pull request.</p>
+
+          <p>That's the future I'm betting on: agents writing the line that downloads the model, and asking a graph first.</p>
+
+          <h2 class="font-headline text-headline-lg text-primary pt-8 pb-2">What's next</h2>
+
+          <p>Fingerprints for mixture-of-experts and hybrid layouts, dequantising K-quant GGUF files so they join the vector index, Hub webhooks instead of polling, and an AI bill of materials exported straight from the graph. The core won't change: follow the family tree, check the weights, carry the rules down, remember why.</p>
+
+          <p class="font-headline text-headline-md text-primary italic pt-4">Cards can be wrong. Weights can't.</p>
+
+          <p class="font-mono text-label-sm text-on-surface-variant/70 tracking-wide pt-12 border-t-[0.5px] border-outline-variant">
+            ModelBrain is live at <a class="text-secondary hover:underline" href="https://web-production-8d8cb.up.railway.app" target="_blank" rel="noopener noreferrer">web-production-8d8cb.up.railway.app</a>, the code is at <a class="text-secondary hover:underline" href="https://github.com/bytes-as/modelbrain" target="_blank" rel="noopener noreferrer">github.com/bytes-as/modelbrain</a>, and the three-minute demo is <a class="text-secondary hover:underline" href="https://youtu.be/OkfR3QbEEb4" target="_blank" rel="noopener noreferrer">on YouTube</a>. It's automated screening, not legal advice; the examples describe public metadata, not anyone's intent.
+          </p>
+        </div>
+      </article>
+      </article>
+    </div>
+  </main>
+
+  <footer class="w-full mt-8 glass-panel border-t-[0.5px] border-outline-variant z-40 relative">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter w-full px-margin-mobile md:px-margin-desktop py-12 mx-auto max-w-container-max">
+      <div class="font-mono text-code text-on-surface-variant">
+        ©<span id="copyright-year">2026</span> <span data-config="name">Arun Singh</span> // ARUN | Software Developer - ALL RIGHTS RESERVED
+      </div>
+      <div class="flex flex-wrap gap-6 md:justify-end">
+        <a class="font-mono text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="https://github.com/" data-config="social.github" target="_blank" rel="noopener noreferrer">GITHUB</a>
+        <a class="font-mono text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="https://www.linkedin.com/in/" data-config="social.linkedin" target="_blank" rel="noopener noreferrer">LINKEDIN</a>
+        <a class="font-mono text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="../index.html#contact">CONTACT</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>
